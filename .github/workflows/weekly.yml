@@ -1,0 +1,29 @@
+name: Weekly flyer report
+on:
+  schedule:
+    - cron: "23 10 * * 4"   # Thursdays 10:23 UTC = 7:23 ADT / 6:23 AST Halifax
+  workflow_dispatch: {}      # manual run button
+
+permissions:
+  contents: write
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install certifi
+      - name: Fetch flyers
+        run: python fetch.py
+      - name: Build report
+        run: python report.py
+      - name: Commit data + report
+        run: |
+          git config user.name "flyer-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/ docs/ health_cache.json
+          git diff --cached --quiet || git commit -m "Weekly report $(date -u +%F)"
+          git push
