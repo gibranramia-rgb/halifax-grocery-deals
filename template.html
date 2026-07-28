@@ -78,7 +78,7 @@ header.mast{border-bottom:2px solid var(--ink);padding:20px 0 12px;margin-bottom
 .mast .dot{display:inline-block;width:.42em;height:.42em;border-radius:50%;background:var(--accent);vertical-align:.08em;margin-left:.18em}
 
 /* ── sticky store bar ─────────────────────── */
-.bar{
+#bar{
   position:sticky;top:0;z-index:20;
   margin:0 -18px;padding:8px 18px 9px;
   background:color-mix(in oklab,var(--bg) 90%,transparent);
@@ -103,7 +103,7 @@ header.mast{border-bottom:2px solid var(--ink);padding:20px 0 12px;margin-bottom
 .chip:hover{border-color:var(--ink-3);color:var(--ink)}
 .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .chip[aria-pressed="true"] u{color:color-mix(in oklab,var(--bg) 72%,var(--ink))}
-@media print{.bar{display:none}}
+@media print{#bar{display:none}}
 
 /* ── hero ─────────────────────────────────── */
 .hero{padding:14px 0 26px}
