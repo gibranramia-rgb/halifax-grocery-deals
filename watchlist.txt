@@ -41,6 +41,6 @@ garbage bags    |  4 | garbage bag, trash bag                 |                 
 pain relief     |  4 | advil, aleve, ibuprofen, naproxen, tylenol |                                                          | pharmacy
 granola         |  4 | granola                                |                                                              | food
 baby wipes      |  4 | baby wipes, wipes                      | disinfect, clorox, lysol, lens, floor                      | household
-bananas         |  4 | banana                                 | pepper, plantain, bread, muffin, chip, candy, mallow, haribo, gummy             | food
+bananas         |  4 | banana                                 | boat, sunscreen, pepper, plantain, bread, muffin, chip, candy, mallow, haribo, gummy             | food
 cereal          |  3 | cereal                                 | bar, infant, baby                                             | food
 pasta           |  3 | pasta                                  | sauce, salad, shaped, heinz                                                  | food
