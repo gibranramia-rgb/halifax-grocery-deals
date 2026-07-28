@@ -1,0 +1,46 @@
+# Halifax grocery watchlist — mined from Gibran's Reminders "Groceries" history (1,026 entries).
+# Weight = how many times the item was bought. Edit freely on github.com from your phone.
+#
+# Format (5 fields, pipe-separated):
+#   display name | weight | match terms (any of, comma-sep) | exclude terms (comma-sep) | category
+# An item matches when any match term appears in the flyer product name AND no exclude term does.
+# Categories: food, household, pharmacy, nslc
+
+eggs            | 30 | eggs                                   | salad, quail, kinder, chocolate, roll, plant, eggo, benedict | food
+milk            | 20 | milk                                   | milkshake, milk2go, sport, coconut, almond, oat, soy, condensed, evaporated, chocolate, milkbone, dog, ice, formula, buttermilk, powdered, soap | food
+cream (coffee)  | 33 | coffee cream, half and half, 10% cream, 18% cream, whipping cream, table cream | splenda, sweetener, sugar free, ice, sour, cheese, shave, hand, face, sun, hair, mushroom, of chicken, pie, liqueur | food
+butter          | 13 | butter                                 | buttermilk, waffle, pancake, butterfilled, loaf, bakery, butter cream, croley, peanut, chick, body, shea, cocoa, butterscotch, murukku, popcorn, cookie, croissant | food
+bread           | 13 | bread                                  | stix, biscuit, crumb, breaded, shortbread, gingerbread, pudding, machine, garlic | food
+paper towels    | 13 | paper towel                            |                                                              | household
+kleenex         | 12 | facial tissue, kleenex                 |                                                              | household
+toilet paper    | 11 | bathroom tissue, toilet paper, toilet tissue |                                                        | household
+potatoes        | 10 | potato                                 | chip, crisp, fries, salad, scallop                            | food
+honey           | 10 | honey                                  | halls, cough, drops, lozenge, serum, lips, ham, garlic, nut, mustard, bbq, dijon, glazed, bunches        | food
+coffee          | 10 | coffee                                 | crystals, whitener, colorant, table, maker, machine, grinder, mate, cake, cream, crisp, liqueur, mug | food
+yoghurt         |  9 | yogurt, yoghurt                        | frozen, covered, gerber, baby, pur                                               | food
+toothpaste      |  8 | toothpaste                             |                                                              | pharmacy
+diapers         |  7 | diaper                                 |                                                              | household
+scotch          |  7 | scotch whisky, single malt, whisky, whiskey | tape, butterscotch, glass, glencairn, stones                                       | nslc
+sour cream      |  6 | sour cream                             | chip, ruffles, lay                                            | food
+garlic          |  6 | garlic                                 | fries, pizza, giuseppe, fingers, bread, sauce, powder, salt, spread, honey                     | food
+wine            |  6 | wine                                   | cooler, fridge, cellar, glasses, opener, rack, kit, cooking, shao xing, vinegar, alcohol free, alcohol-free, de-alcoholized, gums     | nslc
+q-tips          |  6 | q-tips, cotton swab                    |                                                              | pharmacy
+mayonnaise      |  6 | mayonnaise, mayo, hellmann             |                                                              | food
+berries         |  6 | strawberr, blueberr, raspberr, blackberr | chocolate, jam, yogurt, cereal                              | food
+deodorant       |  5 | deodorant, antiperspirant              | soap, body wash, room, air                                                     | pharmacy
+onions          |  5 | onion                                  | ring, powder, soup, crispy, pickled                           | food
+beer            |  5 | beer                                   | root, ginger, 0.0, alcohol-free, alcohol free, de-alcoholized, non-alcoholic | nslc
+chicken broth   |  5 | chicken broth, chicken stock, vegetable broth |                                                        | food
+cream cheese    |  5 | cream cheese                           | icing                                                         | food
+batteries       |  4 | batteries, battery                     | mouthwash, toothbrush, listerine, car, marine, automotive                                       | household
+rice            |  4 | rice                                   | cracker, krispies, cake, paper, vinegar, cauliflower, pudding          | food
+grapes          |  4 | grape                                  | kool-aid, syrup, snow cone, popcorn, powerade, gatorade, cocktail, drink, tomato, juice, jelly, soda                                    | food
+ramen           |  4 | ramen, instant noodle                  |                                                              | food
+peanut butter   |  4 | peanut butter                          | cup, chocolate, cookie, sandwich, wafer                                        | food
+garbage bags    |  4 | garbage bag, trash bag                 |                                                              | household
+pain relief     |  4 | advil, aleve, ibuprofen, naproxen, tylenol |                                                          | pharmacy
+granola         |  4 | granola                                |                                                              | food
+baby wipes      |  4 | baby wipes, wipes                      | disinfect, clorox, lysol, lens, floor                      | household
+bananas         |  4 | banana                                 | pepper, plantain, bread, muffin, chip, candy, mallow, haribo, gummy             | food
+cereal          |  3 | cereal                                 | bar, infant, baby                                             | food
+pasta           |  3 | pasta                                  | sauce, salad, shaped, heinz                                                  | food
