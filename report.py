@@ -293,127 +293,92 @@ def main():
     render(today, snap, deals, ranking, reasons, len(items), weeks)
 
 
-# ---------------------------------------------------------------- html
+# ---------------------------------------------------------------- html (template.html + window.DATA)
 
-CSS = """
-:root{--bg:#faf9f6;--card:#fff;--ink:#1a1a1a;--sub:#666;--line:#e8e5df;--accent:#1a7a4a;
---warn:#b45309;--bad:#b91c1c;font-size:16px}
-@media(prefers-color-scheme:dark){:root{--bg:#141414;--card:#1e1e1e;--ink:#eee;--sub:#999;
---line:#2e2e2e;--accent:#4ade80;--warn:#fbbf24;--bad:#f87171}}
-*{box-sizing:border-box;margin:0}
-body{background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,system-ui,sans-serif;
-max-width:680px;margin:0 auto;padding:16px 14px 60px}
-h1{font-size:1.35rem;margin:8px 0 2px}
-.sub{color:var(--sub);font-size:.85rem;margin-bottom:18px}
-h2{font-size:1.05rem;margin:26px 0 10px;border-bottom:1px solid var(--line);padding-bottom:6px}
-.verdict{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:14px 0}
-.verdict .go{font-size:1.15rem;font-weight:700;color:var(--accent)}
-.bar{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:.9rem}
-.bar .fill{height:8px;border-radius:4px;background:var(--accent);opacity:.75}
-.bar .store{min-width:9.5em}
-.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:10px 0}
-.card .top{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.card .item{font-weight:650}
-.card .price{font-weight:700;white-space:nowrap}
-.card .meta{color:var(--sub);font-size:.83rem;margin-top:2px}
-.badge{display:inline-block;font-size:.74rem;padding:1px 8px;border-radius:99px;
-border:1px solid var(--line);margin-right:4px;margin-top:6px;color:var(--sub)}
-.badge.good{color:var(--accent);border-color:var(--accent)}
-.badge.warn{color:var(--warn);border-color:var(--warn)}
-.badge.bad{color:var(--bad);border-color:var(--bad)}
-details{margin:8px 0}summary{cursor:pointer;color:var(--sub);font-size:.9rem}
-.alt{color:var(--sub);font-size:.83rem;margin-top:4px}
-footer{margin-top:36px;color:var(--sub);font-size:.78rem}
-"""
+MYLIST = ROOT / "data" / "mylist.txt"
 
 
-def esc(s):
-    return html.escape(str(s))
+def on_my_list(w):
+    """Is this watchlist entry on the committed snapshot of the live Reminders list?"""
+    if not MYLIST.exists():
+        return False
+    for line in MYLIST.read_text().splitlines():
+        l = line.strip().lower()
+        if not l:
+            continue
+        if any(t in l or l in t for t in [w["name"].lower()] + w["match"]):
+            return True
+    return False
+
+
+def item_history(w, history, weeks):
+    """Best matching price per week for this watchlist entry — the sparkline series."""
+    series = []
+    for wk in weeks:
+        prices = [r["p"] for r in history
+                  if r["w"] == wk and r["m"] != "walmart.ca" and matches(w, r["n"])]
+        if prices:
+            series.append(round(min(prices), 2))
+    return series
 
 
 def render(today, snap, deals, ranking, reasons, n_items, weeks):
-    top = ranking[0] if ranking else None
+    history = json.loads((ROOT / "data" / "history.json").read_text())
     maxs = ranking[0][1] if ranking else 1
-    H = [f'<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
-         f"<title>Halifax Grocery Deals — {today}</title><style>{CSS}</style>",
-         f"<h1>🛒 Halifax grocery deals</h1>",
-         f'<div class="sub">Week of {today} · {len(snap["flyers"])} flyers · '
-         f"{n_items:,} prices checked · {len(weeks)} week(s) of history</div>"]
+    tier = {"real": "real", "ok": "ok", "ultra": "ultra", "na": "na", "unknown": "na"}
 
-    if top:
-        H.append('<div class="verdict">')
-        H.append(f'<div class="go">This week: go to {esc(top[0])}</div>')
-        H.append(f'<div class="meta" style="color:var(--sub);font-size:.85rem">'
-                 f'Best on: {esc(", ".join(reasons[top[0]][:8]))}</div>')
-        for store, sc in ranking[:6]:
-            pct = int(sc / maxs * 100)
-            H.append(f'<div class="bar"><span class="store">{esc(store)}</span>'
-                     f'<span class="fill" style="width:{pct * 0.55}%"></span>'
-                     f'<span style="color:var(--sub)">{len(reasons[store])} staple deal(s)</span></div>')
-        H.append("</div>")
+    data = {
+        "week": today,
+        "flyerCount": len(snap["flyers"]),
+        "pricesChecked": n_items,
+        "weeksOfHistory": len(weeks),
+        "repo": "https://github.com/gibranramia-rgb/halifax-grocery-deals",
+        "verdict": {
+            "store": ranking[0][0] if ranking else "—",
+            "ranking": [{"store": s, "dealCount": len(reasons[s]),
+                         "score": round(sc / maxs * 100)} for s, sc in ranking[:8]],
+        },
+        "deals": [], "traps": [], "history": {},
+    }
 
     good = [d for d in deals if not d["beaten"]]
-    traps = [d for d in deals if d["beaten"]]
     good.sort(key=lambda d: (-bool(d["low"]), -bool(d["beats"]), -d["w"]["weight"]))
-
-    H.append(f"<h2>Your staples on sale ({len(good)})</h2>")
     for d in good:
-        H.append(card(d))
+        b, w = d["best"], d["w"]
+        badges = []
+        if d["beats"]:
+            badges.append(f'beats Walmart everyday (${d["beats"]["p"]:.2f} {d["beats"]["n"][:30]})')
+        if d["low"]:
+            badges.append(d["low"])
+        if b["story"]:
+            badges.append(b["story"][:48])
+        data["deals"].append({
+            "item": w["name"], "price": b["p"], "product": b["n"][:70], "store": b["m"],
+            "unitPrice": b["up"][2] if b["up"] else "",
+            "health": tier.get(d["health"]["tier"], "na"),
+            "onMyList": on_my_list(w),
+            "multiItem": bool(re.search(r"\bor\b|,", b["n"], re.I) and len(b["n"]) > 40),
+            "badges": badges,
+            "alts": [{"store": a["m"], "price": a["p"],
+                      "unitPrice": a["up"][2] if a["up"] else ""} for a in d["alts"][:3]],
+        })
+        series = item_history(w, history, weeks)
+        if len(series) >= 3:
+            data["history"][w["name"]] = series
 
-    if traps:
-        H.append(f'<h2>Looks like a sale — isn’t ({len(traps)})</h2>')
-        for d in traps:
-            H.append(card(d))
+    for d in [x for x in deals if x["beaten"]]:
+        b, a = d["best"], d["beaten"]
+        data["traps"].append({
+            "item": d["w"]["name"], "price": b["p"], "product": b["n"][:60], "store": b["m"],
+            "reason": f'Walmart everyday is cheaper: ${a["p"]:.2f} {a["n"][:40]}',
+        })
 
-    # everything else, by store, collapsed
-    H.append("<h2>All flyers</h2>")
-    for f in sorted(snap["flyers"], key=lambda f: f["merchant"]):
-        H.append(f'<details><summary>{esc(f["merchant"])} '
-                 f'({esc(f["valid_from"][:10])} → {esc(f["valid_to"][:10])})</summary>'
-                 f'<div class="alt">Open the Flipp app or flipp.com for page images.</div></details>')
-
-    H.append(f"<footer>Data: Flipp (postal {esc(snap['postal_code'])}) · Walmart everyday prices from walmart.ca "
-             f"via Flipp · health tiers: NOVA rules + Open Food Facts · "
-             f"generated {esc(today)} · edit <code>watchlist.txt</code> to tune matching.</footer>")
+    tpl = (ROOT / "template.html").read_text()
     (ROOT / "docs").mkdir(exist_ok=True)
-    (ROOT / "docs" / "index.html").write_text("\n".join(H))
-    print(f"report: docs/index.html — {len(good)} staple deals, {len(traps)} traps, "
-          f"top store: {top[0] if top else 'n/a'}")
-
-
-def card(d):
-    b, w = d["best"], d["w"]
-    up = f' · {b["up"][2]}' if b["up"] else ""
-    unit_note = esc((b.get("post") or "").strip())
-    unit_note = f"/{unit_note.lstrip('/')}" if unit_note else ""
-    badges = []
-    e, label = BADGE[d["health"]["tier"]]
-    if label:
-        cls = {"real": "good", "ok": "warn", "ultra": "bad"}[d["health"]["tier"]]
-        badges.append(f'<span class="badge {cls}">{e} {label}</span>')
-    if d["low"]:
-        badges.append(f'<span class="badge good">📉 {esc(d["low"])}</span>')
-    if d["beats"]:
-        a = d["beats"]
-        badges.append(f'<span class="badge good">beats Walmart everyday '
-                      f'(${a["p"]:.2f} {esc(a["n"][:28])})</span>')
-    if d["beaten"]:
-        a = d["beaten"]
-        badges.append(f'<span class="badge bad">Walmart everyday is cheaper: '
-                      f'${a["p"]:.2f} {esc(a["n"][:34])}</span>')
-    if b["story"]:
-        badges.append(f'<span class="badge">{esc(b["story"][:44])}</span>')
-    if re.search(r"\bor\b|,", b["n"], re.I) and len(b["n"]) > 40:
-        badges.append('<span class="badge">multi-item listing — price may apply to a group</span>')
-    alts = ""
-    if d["alts"]:
-        rows = " · ".join(f'{esc(a["m"])} ${a["p"]:.2f}' + (f' ({a["up"][2]})' if a["up"] else "")
-                          for a in d["alts"])
-        alts = f'<div class="alt">also: {rows}</div>'
-    return (f'<div class="card"><div class="top"><span class="item">{esc(w["name"])}</span>'
-            f'<span class="price">${b["p"]:.2f}{unit_note}</span></div>'
-            f'<div class="meta">{esc(b["n"][:70])} — <b>{esc(b["m"])}</b>{up}</div>'
-            f'{"".join(badges)}{alts}</div>')
+    (ROOT / "docs" / "index.html").write_text(
+        tpl.replace("__DATA__", json.dumps(data, ensure_ascii=False)))
+    print(f"report: docs/index.html — {len(data['deals'])} staple deals, "
+          f"{len(data['traps'])} traps, top store: {data['verdict']['store']}")
 
 
 if __name__ == "__main__":
